@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { Camera } from 'expo-camera';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Image } from 'react-native';
 
 export default function App() {
   const [type, setType] = useState(Camera.Constants.Type.back);
   const [hasPermission, setHasPermission] = useState(null);
   const [cameraRef, setCameraRef] = useState(null);
+  const [capturedPhoto, setCapturedPhoto] = useState(null);
+  const [capturedDateTime, setCapturedDateTime] = useState(null);
 
   useEffect(() => {
     (async () => {
@@ -17,7 +19,11 @@ export default function App() {
   const takePicture = async () => {
     if (cameraRef) {
       const photo = await cameraRef.takePictureAsync();
-      console.log(photo); // Handle the captured photo here, such as saving or displaying it in the UI.
+      console.log(photo);
+
+      // Save the captured photo and datetime
+      setCapturedPhoto(photo.uri);
+      setCapturedDateTime(new Date().toLocaleString());
     }
   };
 
@@ -47,11 +53,19 @@ export default function App() {
           <TouchableOpacity style={styles.button} onPress={takePicture}>
             <Text style={styles.text}>Capture</Text>
           </TouchableOpacity>
+          <TouchableOpacity style={styles.flipButton} onPress={toggleCamera}>
+            <Text style={styles.flipText}>Flip Camera</Text>
+          </TouchableOpacity>
         </View>
       </Camera>
-      <TouchableOpacity style={styles.flipButton} onPress={toggleCamera}>
-        <Text style={styles.flipText}>Toggle Camera</Text>
-      </TouchableOpacity>
+      {capturedPhoto && (
+        <View style={styles.cardContainer}>
+          <View style={styles.card}>
+            <Image source={{ uri: capturedPhoto }} style={styles.photo} />
+            <Text style={styles.dateTime}>{capturedDateTime}</Text>
+          </View>
+        </View>
+      )}
     </View>
   );
 }
@@ -84,9 +98,8 @@ const styles = StyleSheet.create({
     color: 'black',
   },
   flipButton: {
-    position: 'absolute',
-    top: 20,
-    right: 20,
+    top: 10,
+    right: 5,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
     padding: 10,
     borderRadius: 5,
@@ -94,5 +107,26 @@ const styles = StyleSheet.create({
   flipText: {
     fontSize: 18,
     color: 'white',
+  },
+  cardContainer: {
+    alignItems: 'center',
+  },
+  card: {
+    marginTop: 20,
+    backgroundColor: 'white',
+    padding: 10,
+    borderRadius: 10,
+    alignItems: 'center',
+  },
+  photo: {
+    width: 200,
+    height: 200,
+    resizeMode: 'cover',
+    borderRadius: 10,
+  },
+  dateTime: {
+    marginTop: 10,
+    fontSize: 16,
+    color: 'black',
   },
 });
